@@ -15,8 +15,13 @@
 #define ToDeg(rad)		( (180.0 * (rad)) / M_PI )
 #define SQR(x)			( (x) * (x) )
 
+@interface EFCircularSlider (private)
+
+@property (readonly, nonatomic) CGFloat radius;
+
+@end
+
 @implementation EFCircularSlider {
-    CGFloat radius;
     int angle;
     int fixedAngle;
     NSMutableDictionary* labelsWithPercents;
@@ -29,6 +34,7 @@
     _minimumValue = 0.0f;
     _currentValue = 0.0f;
     _lineWidth = 5;
+    _lineRadiusDisplacement = 0;
     _unfilledColor = [UIColor blackColor];
     _filledColor = [UIColor redColor];
     _handleColor = _filledColor;
@@ -67,7 +73,11 @@
     [super setFrame:frame];
     
     angle = [self angleFromValue];
-    radius = self.frame.size.height/2 - _lineWidth/2 - 10;
+}
+
+- (CGFloat)radius {
+    //radius = self.frame.size.height/2 - [self circleDiameter]/2;
+    return self.frame.size.height/2 - _lineWidth/2 - ([self circleDiameter]-_lineWidth) - _lineRadiusDisplacement;
 }
 
 - (void)setCurrentValue:(float)currentValue {
@@ -91,7 +101,7 @@
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     
     //Draw the unfilled circle
-    CGContextAddArc(ctx, self.frame.size.width/2, self.frame.size.height/2, radius, 0, M_PI *2, 0);
+    CGContextAddArc(ctx, self.frame.size.width/2, self.frame.size.height/2, self.radius, 0, M_PI *2, 0);
     [_unfilledColor setStroke];
     CGContextSetLineWidth(ctx, _lineWidth);
     CGContextSetLineCap(ctx, kCGLineCapButt);
@@ -100,9 +110,9 @@
     
     //Draw the filled circle
     if((_handleType == EFDoubleCircleWithClosedCenter || _handleType == EFDoubleCircleWithOpenCenter) && fixedAngle > 5) {
-        CGContextAddArc(ctx, self.frame.size.width/2  , self.frame.size.height/2, radius, 3*M_PI/2, 3*M_PI/2-ToRad(angle+3), 0);
+        CGContextAddArc(ctx, self.frame.size.width/2  , self.frame.size.height/2, self.radius, 3*M_PI/2, 3*M_PI/2-ToRad(angle+3), 0);
     } else {
-        CGContextAddArc(ctx, self.frame.size.width/2  , self.frame.size.height/2, radius, 3*M_PI/2, 3*M_PI/2-ToRad(angle), 0);
+        CGContextAddArc(ctx, self.frame.size.width/2  , self.frame.size.height/2, self.radius, 3*M_PI/2, 3*M_PI/2-ToRad(angle), 0);
     }
     [_filledColor setStroke];
     CGContextSetLineWidth(ctx, _lineWidth);
@@ -158,9 +168,11 @@
     if(labelsEvenSpacing == nil || [labelsEvenSpacing count] == 0) {
         return;
     } else {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0
         NSDictionary *attributes = @{ NSFontAttributeName: _labelFont,
                                       NSForegroundColorAttributeName: _labelColor
-                                    };
+                                      };
+#endif
         
         CGFloat fontSize = ceilf(_labelFont.pointSize);
         
@@ -182,7 +194,13 @@
             
             labelLocation.origin.x = (labelLocation.origin.x + distanceToMove * cos(radiansTowardsCenter));
             labelLocation.origin.y = (labelLocation.origin.y + distanceToMove * sin(radiansTowardsCenter));
+            
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_7_0
             [label drawInRect:labelLocation withAttributes:attributes];
+#else
+            [_labelColor setFill];
+            [label drawInRect:labelLocation withFont:_labelFont];
+#endif
         }
     }
 }
@@ -241,8 +259,8 @@
     
     //Define The point position on the circumference
     CGPoint result;
-    result.y = round(centerPoint.y + radius * sin(ToRad(-angleInt-90))) ;
-    result.x = round(centerPoint.x + radius * cos(ToRad(-angleInt-90)));
+    result.y = round(centerPoint.y + self.radius * sin(ToRad(-angleInt-90))) ;
+    result.x = round(centerPoint.x + self.radius * cos(ToRad(-angleInt-90)));
     
     return result;
 }
@@ -254,8 +272,8 @@
     
     //Define The point position on the circumference
     CGPoint result;
-    result.y = round(centerPoint.y + radius * sin(ToRad(-angleInt-90))) ;
-    result.x = round(centerPoint.x + radius * cos(ToRad(-angleInt-90)));
+    result.y = round(centerPoint.y + self.radius * sin(ToRad(-angleInt-90))) ;
+    result.x = round(centerPoint.x + self.radius * cos(ToRad(-angleInt-90)));
     
     return result;
 }
