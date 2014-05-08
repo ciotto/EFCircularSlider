@@ -45,6 +45,9 @@
     _labelDisplacement = 2;
     
     self.backgroundColor = [UIColor clearColor];
+    
+    UIPanGestureRecognizer *gesture=[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(move:)];
+    [self addGestureRecognizer:gesture];
 }
 
 - (id)initWithFrame:(CGRect)frame
@@ -216,38 +219,65 @@
 
 #pragma mark - UIControl functions
 
--(BOOL) beginTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event {
-    [super beginTrackingWithTouch:touch withEvent:event];
-    
-    return YES;
-}
+//-(BOOL) beginTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event {
+//    [super beginTrackingWithTouch:touch withEvent:event];
+//    
+//    return YES;
+//}
+//
+//-(BOOL) continueTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event {
+//    [super continueTrackingWithTouch:touch withEvent:event];
+//    
+//    CGPoint lastPoint = [touch locationInView:self];
+//    [self moveHandle:lastPoint];
+//    [self sendActionsForControlEvents:UIControlEventValueChanged];
+//    
+//    return YES;
+//}
+//
+//-(void)endTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event{
+//    [super endTrackingWithTouch:touch withEvent:event];
+//    if(_snapToLabels && labelsEvenSpacing != nil) {
+//        CGFloat newAngle=0;
+//        float minDist = 360;
+//        for (int i=0; i<[labelsEvenSpacing count]; i++) {
+//            CGFloat percentageAlongCircle = i/(float)[labelsEvenSpacing count];
+//            CGFloat degreesForLabel = percentageAlongCircle * 360;
+//            if(abs(fixedAngle - degreesForLabel) < minDist) {
+//                newAngle=degreesForLabel ? 360 - degreesForLabel : 0;
+//                minDist = abs(fixedAngle - degreesForLabel);
+//            }
+//        }
+//        angle = newAngle;
+//        _currentValue = [self valueFromAngle];
+//        [self setNeedsDisplay];
+//    }
+//}
 
--(BOOL) continueTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event {
-    [super continueTrackingWithTouch:touch withEvent:event];
+-(void)move:(id)sender {
+    CGPoint lastPoint = [(UIPanGestureRecognizer*)sender locationInView:self];
     
-    CGPoint lastPoint = [touch locationInView:self];
-    [self moveHandle:lastPoint];
-    [self sendActionsForControlEvents:UIControlEventValueChanged];
-    
-    return YES;
-}
-
--(void)endTrackingWithTouch:(UITouch *)touch withEvent:(UIEvent *)event{
-    [super endTrackingWithTouch:touch withEvent:event];
-    if(_snapToLabels && labelsEvenSpacing != nil) {
-        CGFloat newAngle=0;
-        float minDist = 360;
-        for (int i=0; i<[labelsEvenSpacing count]; i++) {
-            CGFloat percentageAlongCircle = i/(float)[labelsEvenSpacing count];
-            CGFloat degreesForLabel = percentageAlongCircle * 360;
-            if(abs(fixedAngle - degreesForLabel) < minDist) {
-                newAngle=degreesForLabel ? 360 - degreesForLabel : 0;
-                minDist = abs(fixedAngle - degreesForLabel);
+    if ([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateBegan) {
+        
+    }else if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateChanged){
+        [self moveHandle:lastPoint];
+        [self sendActionsForControlEvents:UIControlEventValueChanged];
+    }else if ([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
+        if(_snapToLabels && labelsEvenSpacing != nil) {
+            CGFloat newAngle=0;
+            float minDist = 360;
+            for (int i=0; i<[labelsEvenSpacing count]; i++) {
+                CGFloat percentageAlongCircle = i/(float)[labelsEvenSpacing count];
+                CGFloat degreesForLabel = percentageAlongCircle * 360;
+                if(abs(fixedAngle - degreesForLabel) < minDist) {
+                    newAngle=degreesForLabel ? 360 - degreesForLabel : 0;
+                    minDist = abs(fixedAngle - degreesForLabel);
+                }
             }
+            angle = newAngle;
+            _currentValue = [self valueFromAngle];
+            [self setNeedsDisplay];
         }
-        angle = newAngle;
-        _currentValue = [self valueFromAngle];
-        [self setNeedsDisplay];
     }
 }
 
