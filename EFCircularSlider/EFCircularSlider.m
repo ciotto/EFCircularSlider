@@ -46,8 +46,10 @@
     
     self.backgroundColor = [UIColor clearColor];
     
-    UIPanGestureRecognizer *gesture=[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(move:)];
-    [self addGestureRecognizer:gesture];
+    UIPanGestureRecognizer *panGesture=[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(move:)];
+    [self addGestureRecognizer:panGesture];
+    UITapGestureRecognizer *tapGesture=[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(move:)];
+    [self addGestureRecognizer:tapGesture];
 }
 
 - (id)initWithFrame:(CGRect)frame
@@ -255,14 +257,17 @@
 //}
 
 -(void)move:(id)sender {
-    CGPoint lastPoint = [(UIPanGestureRecognizer*)sender locationInView:self];
+    CGPoint lastPoint = [sender locationInView:self];
     
-    if ([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateBegan) {
+    if ([sender state] == UIGestureRecognizerStateBegan) {
         
-    }else if([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateChanged){
+    }else if([sender state] == UIGestureRecognizerStateChanged){
         [self moveHandle:lastPoint];
         [self sendActionsForControlEvents:UIControlEventValueChanged];
-    }else if ([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
+    }else if ([sender state] == UIGestureRecognizerStateEnded) {
+        [self moveHandle:lastPoint];
+        [self sendActionsForControlEvents:UIControlEventValueChanged];
+        
         if(_snapToLabels && labelsEvenSpacing != nil) {
             CGFloat newAngle=0;
             float minDist = 360;
